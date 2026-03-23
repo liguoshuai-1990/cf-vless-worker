@@ -34,4 +34,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # 3. 核心修复：确保项目名称与 Cloudflare 后台一致
           # 如果你的仓库根目录就是代码，使用 "."
-          command: pages deploy . --project-name=liguoshuai-proxy --commit-dirty=true
+          command: pages deploy ./dist --project-name=liguoshuai-proxy --commit-dirty=true --no-bundle
