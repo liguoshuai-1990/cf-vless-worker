@@ -8,6 +8,11 @@ let userID = '4316fe33-e607-47b1-8c29-60f585cf630e';
 
 let proxyIP = 'pyip.ygkkk.dpdns.org';
 
+
+if (!isValidUUID(userID)) {
+	throw new Error('uuid is not valid');
+}
+
 export default {
 	/**
 	 * @param {import("@cloudflare/workers-types").Request} request
@@ -26,7 +31,7 @@ export default {
 					case '/':
 						return new Response(JSON.stringify(request.cf), { status: 200 });
 					case `/${userID}`: {
-						const config = getVLESSConfig(userID, request.headers.get('Host'));
+						const config = getConfig(userID, request.headers.get('Host'));
 						return new Response(`${config}`, {
 							status: 200,
 							headers: {
@@ -100,7 +105,7 @@ async function overWSHandler(request) {
 				rawDataIndex,
 				version = new Uint8Array([0, 0]),
 				isUDP,
-			} = processVlessHeader(chunk, userID);
+			} = processHeader(chunk, userID);
 			address = addressRemote;
 			portWithRandomLog = `${portRemote}--${Math.random()} ${isUDP ? 'udp ' : 'tcp '
 				} `;
@@ -158,7 +163,7 @@ async function overWSHandler(request) {
  * @param {number} portRemote The remote port to connect to.
  * @param {Uint8Array} rawClientData The raw client data to write.
  * @param {import("@cloudflare/workers-types").WebSocket} webSocket The WebSocket to pass the remote socket to.
- * @param {Uint8Array} responseHeader The VLESS response header.
+ * @param {Uint8Array} responseHeader The response header.
  * @param {function} log The logging function.
  * @returns {Promise<void>} The remote socket.
  */
@@ -270,7 +275,7 @@ function makeReadableWebSocketStream(webSocketServer, earlyDataHeader, log) {
  * @param {string} userID 
  * @returns 
  */
-function processVlessHeader(
+function processHeader(
 	buffer,
 	userID
 ) {
@@ -387,7 +392,7 @@ function processVlessHeader(
  * 
  * @param {import("@cloudflare/workers-types").Socket} remoteSocket 
  * @param {import("@cloudflare/workers-types").WebSocket} webSocket 
- * @param {ArrayBuffer} vlessResponseHeader 
+ * @param {ArrayBuffer} responseHeader 
  * @param {(() => Promise<void>) | null} retry
  * @param {*} log 
  */
@@ -523,7 +528,7 @@ function stringify(arr, offset = 0) {
  */
 async function handleUDPOutBound(webSocket, responseHeader, log) {
 
-	let isVlessHeaderSent = false;
+	let isHeaderSent = false;
 	const transformStream = new TransformStream({
 		start(controller) {
 
@@ -562,11 +567,11 @@ async function handleUDPOutBound(webSocket, responseHeader, log) {
 			const udpSizeBuffer = new Uint8Array([(udpSize >> 8) & 0xff, udpSize & 0xff]);
 			if (webSocket.readyState === WS_READY_STATE_OPEN) {
 				log(`doh success and dns message length is ${udpSize}`);
-				if (isVlessHeaderSent) {
+				if (isHeaderSent) {
 					webSocket.send(await new Blob([udpSizeBuffer, dnsQueryResult]).arrayBuffer());
 				} else {
 					webSocket.send(await new Blob([responseHeader, udpSizeBuffer, dnsQueryResult]).arrayBuffer());
-					isVlessHeaderSent = true;
+					isHeaderSent = true;
 				}
 			}
 		}
@@ -593,7 +598,7 @@ async function handleUDPOutBound(webSocket, responseHeader, log) {
  * @param {string | null} hostName
  * @returns {string}
  */
-function getVLESSConfig(userID, hostName) {
+function getConfig(userID, hostName) {
 	const protocol = "vless";
 	const vMain = 
 	`${protocol}` + 
