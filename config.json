@@ -1,0 +1,24 @@
+{
+  "uuid": "4316fe33-e607-47b1-8c29-60f585cf630e",
+  "proxyIPs": ["pyip.ygkkk.dpdns.org"],
+  "CDNIP": "www.visa.com.sg",
+  "http_ips": [
+    "www.visa.com",
+    "cis.visa.com",
+    "africa.visa.com",
+    "www.visa.com.sg",
+    "www.visaeurope.at",
+    "www.visa.com.mt",
+    "qa.visamiddleeasteast.com"
+  ],
+  "https_ips": [
+    "usa.visa.com",
+    "myanmarr.visa.com",
+    "www.visa.com.tw",
+    "www.visaeurope.ch",
+    "www.visa.com.br",
+    "www.visasoutheastasteasteurope.com"
+  ],
+  "http_ports": ["80", "8080", "8880", "2052", "2082", "2086", "2095"],
+  "https_ports": ["443", "8443", "2053", "2083", "2087", "2096"]
+}
