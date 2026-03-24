@@ -8,11 +8,6 @@ let userID = '4316fe33-e607-47b1-8c29-60f585cf630e';
 
 let proxyIP = 'pyip.ygkkk.dpdns.org';
 
-
-if (!isValidUUID(userID)) {
-	throw new Error('uuid is not valid');
-}
-
 export default {
 	/**
 	 * @param {import("@cloudflare/workers-types").Request} request
