@@ -20,11 +20,14 @@ jobs:
           SCRIPT_NAME: cf-vless-worker
         run: |
           cd dist
-          # 1. 创建 metadata 文件，指定入口是模块文件
-          echo '{"main_module": "worker.js", "compatibility_date": "2024-01-01"}' > metadata.json
+          
+          # 1. 创建 metadata 文件
+          # 注意：这里的 main_module 值必须和下面 -F 参数中的文件名一致
+          echo '{"main_module": "_worker.js", "compatibility_date": "2024-01-01"}' > metadata.json
 
-          # 2. 使用 multipart/form-data 格式上传
+          # 2. 执行上传
+          # 注意：-F 后面的文件名部分（@_worker.js）要和 metadata 对应
           curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/workers/scripts/$SCRIPT_NAME" \
             -H "Authorization: Bearer $API_TOKEN" \
             -F "metadata=@metadata.json;type=application/json" \
-            -F "script=@_worker.js;type=application/javascript+module"
+            -F "_worker.js=@_worker.js;type=application/javascript+module"
