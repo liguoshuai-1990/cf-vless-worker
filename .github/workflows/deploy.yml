@@ -19,7 +19,10 @@ jobs:
           API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SCRIPT_NAME: cf-vless-worker
         run: |
+          # 创建一个 metadata 文件，声明入口点
+          echo '{"main_module": "worker.js"}' > metadata.json
+
           curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/workers/scripts/$SCRIPT_NAME" \
             -H "Authorization: Bearer $API_TOKEN" \
-            -H "Content-Type: application/javascript" \
-            --data-binary "@dist/_worker.js"
+            -F "metadata=@metadata.json;type=application/json" \
+            -F "script=@dist/_worker.js;type=application/javascript+module"
