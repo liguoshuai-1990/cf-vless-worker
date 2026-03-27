@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Deploy to Cloudflare Workers
 
 on:
   push:
@@ -9,29 +9,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    
-    # 1. 解决 Node.js 20 弃用警告，强制 Actions 运行在 Node 24 环境
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. 显式安装 Node.js 24 确保 npx 环境正确
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-
-      - name: Publish to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # 3. 核心修复：确保项目名称与 Cloudflare 后台一致
-          # 如果你的仓库根目录就是代码，使用 "."
-          command: pages deploy ./dist --commit-dirty=true --project-name=data-sync-handler
+      - name: Deploy Worker with curl
+        env:
+          ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SCRIPT_NAME: cf-vless-worker
+        run: |
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/workers/scripts/$SCRIPT_NAME" \
+            -H "Authorization: Bearer $API_TOKEN" \
+            -H "Content-Type: application/javascript" \
+            --data-binary "@dist/_worker.js"
