@@ -19,14 +19,19 @@ jobs:
           API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SCRIPT_NAME: cf-vless-worker
         run: |
+
           cd dist
           
-          # 1. 创建 metadata 文件
-          # 注意：这里的 main_module 值必须和下面 -F 参数中的文件名一致
+          # 1. 核心修复：注入 window 定义，解决 "window is not defined" 报错
+          # 我们把 globalThis (Workers 的全局对象) 赋值给 window
+          echo "var window = globalThis; var self = globalThis;" > temp_worker.js
+          cat _worker.js >> temp_worker.js
+          mv temp_worker.js _worker.js
+
+          # 2. 创建 metadata
           echo '{"main_module": "_worker.js", "compatibility_date": "2024-01-01"}' > metadata.json
 
-          # 2. 执行上传
-          # 注意：-F 后面的文件名部分（@_worker.js）要和 metadata 对应
+          # 3. 执行上传
           curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/workers/scripts/$SCRIPT_NAME" \
             -H "Authorization: Bearer $API_TOKEN" \
             -F "metadata=@metadata.json;type=application/json" \
